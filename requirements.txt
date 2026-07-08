@@ -1,0 +1,49 @@
+# Core CLI tools
+typer==0.16.0
+click==8.1.8
+python-dotenv==1.1.1
+
+# Web scraping and parsing
+requests==2.32.4
+beautifulsoup4==4.13.4
+lxml==6.0.0
+readability-lxml==0.8.4.1
+soupsieve==2.7
+
+# Search integration
+ddgs==9.2.3
+duckduckgo-search==8.1.1
+primp==0.15.0
+
+# NLP and Text Processing
+spacy==3.7.5
+nltk==3.9.1
+contractions==0.1.73
+textsearch==0.0.24
+keybert==0.9.0
+scikit-learn==1.6.1
+
+# Vector Search
+faiss-cpu==1.11.0
+sentence-transformers==5.0.0
+
+# Transformer models & embeddings
+transformers==4.53.1
+torch==2.6.0
+tqdm==4.67.1
+torchvision==0.21.0
+torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Optional (only if using Groq API)
+groq==0.29.0
+
+# Utility
+urllib3==2.5.0
+pydantic==2.11.7
+selenium
+pandas
+pymupdf
+flask
+flask_cors
+serpapi
+google-search-results

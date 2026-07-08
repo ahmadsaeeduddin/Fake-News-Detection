@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fake News Detection System</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif !important; /* Force Segoe UI everywhere */
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to right, #000000, #2c2c2c);
+        min-height: 100vh;
+        color: white;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 60px;
+        padding-top: 40px;
+      }
+
+      .logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #58b55b, #105313);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+      }
+
+      .shield-icon {
+        font-size: 40px;
+        font-weight: bold;
+        background-clip: text;
+      }
+
+      h1 {
+        font-size: 3rem;
+        font-weight: 700; /* Make it bold like a heading */
+        margin-bottom: 15px;
+        background: linear-gradient(
+          to right,
+          #1976d2,
+          #388e3c
+        ); /* Gradient text */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      .analysis-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 80px;
+      }
+
+      .analysis-card {
+        background: linear-gradient(to left, #000000, #2c2c2c);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .analysis-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+      }
+
+      .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        display: block;
+      }
+
+      .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+
+      .card-description {
+        opacity: 0.8;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      .input-field {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 15px 20px;
+        color: white;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .input-field::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #4caf50;
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .url-input {
+        min-height: 100px;
+      }
+
+      .btn {
+        width: 100%;
+        background: linear-gradient(to right, #1976d2, #388e3c);
+        border: none;
+        border-radius: 12px;
+        padding: 15px 30px;
+        color: black !important;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .loading {
+        display: none;
+      }
+
+      .loading.active {
+        display: inline-block;
+        margin-right: 10px;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .how-it-works {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: 700; /* Bold like a heading */
+        background: linear-gradient(to right, #1976d2, #388e3c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-fill-color: transparent;
+        margin-bottom: 50px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+      }
+
+      .feature-card {
+        background: linear-gradient(to left, #000000, #2c2c2c);
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        display: block;
+      }
+
+      .feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+
+      .feature-description {
+        opacity: 0.8;
+        line-height: 1.6;
+      }
+
+      .results-section {
+        margin-top: 40px;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+      }
+
+      .results-section.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .result-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #4caf50;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .confidence-score {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .error-message {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid rgba(244, 67, 54, 0.3);
+        color: #f44336;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 20px;
+        display: none;
+      }
+
+      .error-message.active {
+        display: block;
+      }
+
+      @media (max-width: 768px) {
+        .analysis-section {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .analysis-card {
+          padding: 30px 25px;
+        }
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        margin: 20px 0;
+        overflow: hidden;
+        display: none;
+      }
+
+      .progress-bar.active {
+        display: block;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50, #81c784);
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 2px;
+      }
+
+      .step-indicator {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 10px;
+        display: none;
+      }
+
+      .step-indicator.active {
+        display: block;
+      }
+      .icon-svg {
+        height: 1em;
+        width: auto;
+        vertical-align: middle;
+        display: inline-block;
+      }
+      .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5em; /* space between icon and text */
+      }
+
+      .card-icon .icon-svg {
+        height: 0.6em;
+        width: auto;
+        vertical-align: middle;
+      }
+      .icon-circle {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(to right, #1976d2, #388e3c);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto; /* center horizontally */
+      }
+
+      .icon-img {
+        width: 28px;
+        height: 28px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="icon-circle">
+          <img src="./icons/shieldblack.svg" alt="Icon" class="icon-img" />
+        </div>
+
+        <h1>Fake News Detection System</h1>
+        <p class="subtitle">
+          Verify claims and analyze article credibility with advanced AI-powered
+          fact-checking technology
+        </p>
+      </header>
+
+      <div class="analysis-section">
+        <div class="analysis-card">
+          <div class="card-title-group">
+            <span class="card-icon">
+              <img
+                src="./icons/file.svg"
+                alt="Analyze Claim Icon"
+                class="icon-svg"
+              />
+            </span>
+            <h3 class="card-title">Analyze a Claim</h3>
+          </div>
+          <p class="card-description">Enter a claim to fact-check</p>
+
+          <div class="input-group">
+            <textarea
+              class="input-field"
+              id="claimInput"
+              placeholder="Enter a claim to fact-check..."
+              rows="1"
+            ></textarea>
+          </div>
+
+          <button class="btn" id="analyzeClaimBtn">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+            <span class="btn-text">
+              <img
+                src="./icons/searchblack.svg"
+                class="icon-svg"
+                alt="Search Icon"
+              />
+              Analyze Claim
+            </span>
+          </button>
+
+          <div class="progress-bar" id="claimProgress">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="step-indicator" id="claimStep"></div>
+
+          <div class="error-message" id="claimError"></div>
+          <div class="results-section" id="claimResults"></div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="card-title-group">
+            <span class="card-icon">
+              <img
+                src="./icons/link.svg"
+                alt="Analyze Article Icon"
+                class="icon-svg"
+              />
+            </span>
+            <h3 class="card-title">Analyze Article</h3>
+          </div>
+
+          <p class="card-description">
+            Paste a link to extract and verify the main claims from an article
+          </p>
+
+          <div class="input-group">
+            <input
+              type="url"
+              class="input-field"
+              id="urlInput"
+              placeholder="https://example.com/news-article"
+              rows="1"
+            />
+          </div>
+
+          <button class="btn" id="analyzeUrlBtn">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+            <span class="btn-text">
+              <img src="./icons/world.svg" class="icon-svg" alt="Globe Icon" />
+              Extract & Analyze
+            </span>
+          </button>
+
+          <div class="progress-bar" id="urlProgress">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="step-indicator" id="urlStep"></div>
+
+          <div class="error-message" id="urlError"></div>
+          <div class="results-section" id="urlResults"></div>
+        </div>
+      </div>
+
+      <section class="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <span class="feature-icon">
+              <img
+                src="./icons/search.svg"
+                alt="AI Analysis"
+                class="icon-svg"
+              />
+            </span>
+
+            <h3 class="feature-title">AI-Powered Analysis</h3>
+            <p class="feature-description">
+              Advanced algorithms analyze claims against verified sources and
+              databases
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">
+              <img
+                src="./icons/shield.svg"
+                alt="Real-time Verification"
+                class="icon-svg"
+              />
+            </span>
+
+            <h3 class="feature-title">Real-time Verification</h3>
+            <p class="feature-description">
+              Cross-reference information with multiple reliable sources
+              instantly
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">
+              <img
+                src="./icons/trend.svg"
+                alt="Credibility Scoring"
+                class="icon-svg"
+              />
+            </span>
+
+            <h3 class="feature-title">Credibility Scoring</h3>
+            <p class="feature-description">
+              Get detailed credibility scores and confidence levels for each
+              claim
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal redesign: add max-height, scroll, and better formatting for complete text visibility -->
+    <div
+      id="resultModal"
+      class="modal"
+      style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        class="modal-content"
+        style="
+          background: #222;
+          color: white;
+          border-radius: 16px;
+          max-width: 600px;
+          width: 90vw;
+          padding: 32px;
+          position: relative;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          max-height: 80vh;
+          overflow-y: auto;
+          white-space: pre-wrap;
+        "
+      >
+        <span
+          id="closeModal"
+          style="
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 2rem;
+            cursor: pointer;
+          "
+          >&times;</span
+        >
+        <div
+          id="modalResultContent"
+          style="font-size: 1.1rem; line-height: 1.7"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      class FakeNewsDetector {
+        constructor() {
+          this.baseURL = "http://192.168.100.120:5000"; // Backend server URL
+          this.initializeEventListeners();
+        }
+
+        initializeEventListeners() {
+          document
+            .getElementById("analyzeClaimBtn")
+            .addEventListener("click", () => {
+              this.analyzeClaim();
+            });
+
+          document
+            .getElementById("analyzeUrlBtn")
+            .addEventListener("click", () => {
+              this.analyzeUrl();
+            });
+
+          // Enter key support
+          document
+            .getElementById("claimInput")
+            .addEventListener("keypress", (e) => {
+              if (e.key === "Enter" && e.ctrlKey) {
+                this.analyzeClaim();
+              }
+            });
+
+          document
+            .getElementById("urlInput")
+            .addEventListener("keypress", (e) => {
+              if (e.key === "Enter") {
+                this.analyzeUrl();
+              }
+            });
+        }
+
+        async analyzeClaim() {
+          const claimText = document.getElementById("claimInput").value.trim();
+          if (!claimText) {
+            this.showError("claimError", "Please enter a claim to analyze.");
+            return;
+          }
+
+          this.setLoading("analyzeClaimBtn", true);
+          this.hideError("claimError");
+          this.hideResults("claimResults");
+          this.showProgress("claimProgress", "claimStep");
+
+          try {
+            const steps = [
+              "Extracting keywords...",
+              "Searching for related information...",
+              "Building knowledge base...",
+              "Running fact-check analysis...",
+              "Generating results...",
+            ];
+
+            let currentStep = 0;
+            const stepInterval = setInterval(() => {
+              if (currentStep < steps.length) {
+                this.updateProgress(
+                  "claimProgress",
+                  "claimStep",
+                  (currentStep + 1) * 20,
+                  steps[currentStep]
+                );
+                currentStep++;
+              }
+            }, 1000);
+
+            const response = await fetch(`${this.baseURL}/analyze-claim`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                claim: claimText,
+              }),
+            });
+
+            clearInterval(stepInterval);
+            this.updateProgress(
+              "claimProgress",
+              "claimStep",
+              100,
+              "Analysis complete!"
+            );
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("claim,   ", result);
+            this.displayResults("claimResults", result, "claim");
+          } catch (error) {
+            console.error("Error analyzing claim:", error);
+            this.showError(
+              "claimError",
+              "Failed to analyze claim. Please check your connection and try again."
+            );
+          } finally {
+            this.setLoading("analyzeClaimBtn", false);
+            setTimeout(
+              () => this.hideProgress("claimProgress", "claimStep"),
+              2000
+            );
+          }
+        }
+
+        async analyzeUrl() {
+          const url = document.getElementById("urlInput").value.trim();
+          if (!url) {
+            this.showError("urlError", "Please enter a valid URL.");
+            return;
+          }
+
+          if (!this.isValidUrl(url)) {
+            this.showError(
+              "urlError",
+              "Please enter a valid URL (e.g., https://example.com)"
+            );
+            return;
+          }
+
+          this.setLoading("analyzeUrlBtn", true);
+          this.hideError("urlError");
+          this.hideResults("urlResults");
+          this.showProgress("urlProgress", "urlStep");
+
+          try {
+            const steps = [
+              "Scraping article content...",
+              "Cleaning and processing text...",
+              "Generating claims...",
+              "Extracting keywords...",
+              "Building knowledge base...",
+              "Running fact-check analysis...",
+            ];
+
+            let currentStep = 0;
+            const stepInterval = setInterval(() => {
+              if (currentStep < steps.length) {
+                this.updateProgress(
+                  "urlProgress",
+                  "urlStep",
+                  (currentStep + 1) * 16.67,
+                  steps[currentStep]
+                );
+                currentStep++;
+              }
+            }, 2000);
+
+            const response = await fetch(`${this.baseURL}/analyze-url`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                url: url,
+              }),
+            });
+
+            clearInterval(stepInterval);
+            this.updateProgress(
+              "urlProgress",
+              "urlStep",
+              100,
+              "Analysis complete!"
+            );
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            this.displayResults("urlResults", result, "url");
+          } catch (error) {
+            console.error("Error analyzing URL:", error);
+            this.showError(
+              "urlError",
+              "Failed to analyze article. Please check the URL and try again."
+            );
+          } finally {
+            this.setLoading("analyzeUrlBtn", false);
+            setTimeout(() => this.hideProgress("urlProgress", "urlStep"), 2000);
+          }
+        }
+
+        displayResults(containerId, result, type) {
+          console.log("result in html tag,   ", result);
+
+          let html = "";
+          if (type === "claim") {
+            const claimText = result.claim || "N/A";
+
+            // Get raw fact-check text
+            const factCheckRaw = result.fact_check_result || "";
+
+            // Extract Final Result from bold **like this**
+            // First, try to match "Classification: Supported" or similar strings
+            const classificationMatch = factCheckRaw.match(
+              /Classification:\s*(.*)/
+            );
+
+            // If a classification exists, extract it, else fallback to directly extracting the final result
+            const finalResult = classificationMatch
+              ? classificationMatch[1].trim()
+              : factCheckRaw.match(
+                  /(Supported|Refuted|Misleading|Needs Further Investigation)/
+                )
+              ? factCheckRaw.match(
+                  /(Supported|Refuted|Misleading|Needs Further Investigation)/
+                )[0]
+              : "Unknown";
+
+            // Remove **...** and any "Justification:" line that follows it
+            let justification = factCheckRaw
+              .replace(/\*\*(.*?)\*\*\s*/g, "") // remove bolded heading
+              .replace(/^Justification:\s*/i, "") // remove starting "Justification:"Classification
+              .replace(/^Classification:\s*/i, "") // remove starting "Classification:
+              .trim();
+
+            html = `
+        <h4 style="margin-bottom: 20px; color: #4CAF50;">Analysis Results</h4>
+        <div class="result-item" style="font-family: Arial, sans-serif; background-color: #2b2b2b; padding: 20px; border-radius: 10px;">
+            <p><strong style="color:#1E88E5;">Claim:</strong> ${claimText}</p>
+            <p><strong style="color:#D32F2F;">Final Result:</strong> ${finalResult}</p>
+            <p><strong style="color:#388E3C;">Justification:</strong><br>
+            <span style="white-space:pre-wrap; color: #eee;">${justification}</span></p>
+            ${
+              result.sources
+                ? `<p><strong style="color:#6D4C41;">Sources:</strong> ${result.sources.length} sources analyzed</p>`
+                : ""
+            }
+        </div>
+    `;
+          } else if (type === "url") {
+            html = `
+                        <h4 style="margin-bottom: 20px; color: #4CAF50;">Article Analysis Results</h4>
+                    `;
+
+            if (result.claims && result.claims.length > 0) {
+              result.claims.forEach((claim, index) => {
+                html += `
+                                <div class="result-item">
+                                    <div class="result-header">
+                                        <strong>Claim ${index + 1}</strong>
+                                        <span class="confidence-score">Score: ${
+                                          claim.score || "N/A"
+                                        }</span>
+                                    </div>
+                                    <p style='white-space:pre-wrap;'><strong>Statement:</strong> ${
+                                      claim.text
+                                    }</p>
+                                    <p><strong>Status:</strong> ${
+                                      claim.verdict || "Analyzed"
+                                    }</p>
+                                </div>
+                            `;
+              });
+            } else {
+              html += `
+                            <div class="result-item">
+                                <p>Article analysis completed. ${
+                                  result.message ||
+                                  "No specific claims could be extracted for verification."
+                                }</p>
+                            </div>
+                        `;
+            }
+          }
+          // Show in modal
+          document.getElementById("modalResultContent").innerHTML = html;
+          document.getElementById("resultModal").style.display = "flex";
+          // Hide inline results if any
+          const container = document.getElementById(containerId);
+          if (container) container.classList.remove("active");
+        }
+
+        setLoading(buttonId, isLoading) {
+          const button = document.getElementById(buttonId);
+          const loading = button.querySelector(".loading");
+
+          if (isLoading) {
+            button.disabled = true;
+            loading.classList.add("active");
+          } else {
+            button.disabled = false;
+            loading.classList.remove("active");
+          }
+        }
+
+        showError(errorId, message) {
+          const errorElement = document.getElementById(errorId);
+          errorElement.textContent = message;
+          errorElement.classList.add("active");
+        }
+
+        hideError(errorId) {
+          const errorElement = document.getElementById(errorId);
+          errorElement.classList.remove("active");
+        }
+
+        hideResults(resultsId) {
+          const resultsElement = document.getElementById(resultsId);
+          resultsElement.classList.remove("active");
+        }
+
+        showProgress(progressId, stepId) {
+          document.getElementById(progressId).classList.add("active");
+          document.getElementById(stepId).classList.add("active");
+        }
+
+        hideProgress(progressId, stepId) {
+          document.getElementById(progressId).classList.remove("active");
+          document.getElementById(stepId).classList.remove("active");
+        }
+
+        updateProgress(progressId, stepId, percentage, stepText) {
+          const progressFill = document.querySelector(
+            `#${progressId} .progress-fill`
+          );
+          const stepElement = document.getElementById(stepId);
+
+          progressFill.style.width = `${percentage}%`;
+          stepElement.textContent = stepText;
+        }
+
+        isValidUrl(string) {
+          try {
+            new URL(string);
+            return true;
+          } catch (_) {
+            return false;
+          }
+        }
+      }
+
+      // Initialize the application
+      document.addEventListener("DOMContentLoaded", () => {
+        new FakeNewsDetector();
+      });
+
+      // Add modal close logic
+      window.onload = function () {
+        const modal = document.getElementById("resultModal");
+        const closeBtn = document.getElementById("closeModal");
+        closeBtn.onclick = function () {
+          modal.style.display = "none";
+        };
+        window.onclick = function (event) {
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        };
+      };
+    </script>
+  </body>
+</html>
