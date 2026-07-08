@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fake News Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif; /* Force Segoe UI everywhere */
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg,  #0f0f0f, #1d1d1d);
+        min-height: 100vh;
+        color: white;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 60px;
+        padding-top: 80px;
+      }
+
+      .logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #58b55b, #105313);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+      }
+
+      .shield-icon {
+        font-size: 40px;
+        font-weight: bold;
+        background-clip: text;
+      }
+
+      h1 {
+        font-size: 3rem;
+        font-weight: 700; /* Make it bold like a heading */
+        margin-bottom: 15px;
+        background: linear-gradient(
+          to right,
+          #1976d2,
+          #388e3c
+        ); /* Gradient text */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      .analysis-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 60px;
+        align-items: start;
+      }
+
+      /* Widen and shorten the cards */
+      .analysis-card {
+        background: linear-gradient(to left, #151414, #232323);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 25px 30px;  /* reduced padding -> shorter height */
+        border: 1px solid rgba(39, 39, 39, 0.76);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        width: 95%;          /* wider */
+        margin: 0 auto;      /* center inside container */
+      }
+
+      .analysis-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+      }
+
+      .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        display: block;
+      }
+
+      .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+
+      .card-description {
+        opacity: 0.8;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      .input-field {  
+        width: 100%;
+        background: #000;
+        border: 1px solid rgba(39, 39, 39, 0.76); /* matches .analysis-card border */
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: #fff;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        resize: vertical;
+        min-height: 70px; /* was 100px */
+      }
+
+      .input-field:focus {
+        outline: 1px solid #1976d2;
+        border-color: #1976d2;
+        border-width: 1px;
+        border-radius: 16px;
+        box-shadow: 0 0 0 1px #1976d2;
+        background: #000;
+        transition: none;
+      }
+
+      .input-field::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .url-input {
+        min-height: 100px;
+      }
+
+      .btn {
+        width: 100%;
+        background: linear-gradient(to right, #1976d2, #388e3c);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 20px;
+        color: black !important;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(25, 118, 210, 0.4), 0 10px 25px rgba(56, 142, 60, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .loading {
+        display: none;
+      }
+
+      .loading.active {
+        display: inline-block;
+        margin-right: 10px;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .how-it-works {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: 700; /* Bold like a heading */
+        background: linear-gradient(to right, #1976d2, #388e3c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 50px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+      }
+
+      .feature-card {
+        background: linear-gradient(to left, #151414, #242424);
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        display: block;
+      }
+
+      .feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+
+      .feature-description {
+        opacity: 0.8;
+        line-height: 1.6;
+      }
+
+      .results-section {
+        margin-top: 40px;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+      }
+
+      .results-section.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+
+      .confidence-score {
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .error-message {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid rgba(244, 67, 54, 0.3);
+        color: #f44336;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 20px;
+        display: none;
+      }
+
+      .error-message.active {
+        display: block;
+      }
+
+      @media (max-width: 768px) {
+        .analysis-section {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .analysis-card {
+          padding: 30px 25px;
+        }
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        margin: 20px 0;
+        overflow: hidden;
+        display: none;
+      }
+
+      .progress-bar.active {
+        display: block;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50, #81c784);
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 2px;
+      }
+
+      .step-indicator {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 10px;
+        display: none;
+      }
+
+      .step-indicator.active {
+        display: block;
+      }
+      .icon-svg {
+        height: 1em;
+        width: auto;
+        vertical-align: middle;
+        display: inline-block;
+      }
+      .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5em; /* space between icon and text */
+      }
+
+      .card-icon .icon-svg {
+        height: 0.6em;
+        width: auto;
+        vertical-align: middle;
+      }
+      .icon-circle {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(to right, #1976d2, #388e3c);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px auto; /* center horizontally, add bottom margin */
+        box-shadow:
+          0 0 18px 4px rgba(25, 118, 210, 0.18),
+          0 0 28px 8px rgba(56, 142, 60, 0.14);
+      }
+
+      .icon-img {
+        width: 33px;
+        height: 33px;
+      }
+
+      .top-nav {
+        width: 100vw;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px 0 40px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        background: none;
+      }
+      .nav-left {
+        display: flex;
+        align-items: center;
+      }
+      .nav-sidebar-icon {
+        width: 26px;
+        height: 26px;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      .nav-sidebar-icon:hover {
+        transform: scale(1.08);
+      }
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+      }
+      .nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 10px 18px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        cursor: pointer;
+        outline: none;
+        box-sizing: border-box;
+      }
+      .nav-login {
+        background: none;
+        color: #fff;
+      }
+      .nav-login .nav-icon,
+      .nav-signup .nav-icon {
+        width: 24px;
+        height: 24px;
+      }
+      .nav-signup {
+        background: #000;
+        border: 1px solid #222;
+        color: #fff;
+        box-shadow: none;
+      }
+      .nav-login:hover {
+        background: #222;
+        color: #fff;
+      }
+      .nav-signup:hover {
+        background: #222;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .result-item {
+        width: 100%;            /* stretches full modal width */
+        font-family: Arial, sans-serif;
+        background-color: #2b2b2b;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        width: 100%;                /* stretch across parent */
+      }
+
+      .modal-content {
+        width: 95vw;
+        max-width: none;
+      }
+
+      /* Sidebar styles */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px; /* hidden by default */
+        width: 260px;
+        height: 100%;
+        background: #111;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.4);
+        transition: left 0.3s ease;
+        z-index: 2000;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .sidebar h2 {
+        font-size: 1.2rem;
+        margin-top: 30px;
+        margin-bottom: 14px;
+      }
+
+      .sidebar-close {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        font-size: 1.4rem;
+        cursor: pointer;
+      }
+
+      /* Overlay behind sidebar */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+        z-index: 1500;
+      }
+
+      .overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+
+
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <span class="sidebar-close" id="closeSidebar">&times;</span>
+      <h2>Analysis History</h2>
+      <p style="opacity:0.63; font-size:0.75rem; margin-top:16px;">
+        You are not logged in right now
+      </p>
+    </div>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="nav-left">
+        <img src="./icons/sidebar.svg" alt="Sidebar" class="nav-sidebar-icon" id="sidebarToggle"/>
+      </div>
+      <div class="nav-right">
+        <a href="login.html" class="nav-btn nav-login">
+          <img src="./icons/login.svg" alt="Login" class="nav-icon" />
+          <span>Login</span>
+        </a>
+        <a href="signup.html" class="nav-btn nav-signup">
+          <img src="./icons/signup.svg" alt="Sign Up" class="nav-icon" />
+          <span>Sign Up</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <header class="header">
+        <div class="icon-circle">
+          <img src="./icons/shieldblack.svg" alt="Icon" class="icon-img" />
+        </div>
+
+        <h1>Fake News Detection System</h1>
+        <p class="subtitle">
+          Verify claims and analyze article credibility with advanced AI-powered
+          fact-checking technology
+        </p>
+      </header>
+
+      <div class="analysis-section">
+        <div class="analysis-card">
+          <div class="card-title-group">
+            <span class="card-icon">
+              <img
+                src="./icons/file.svg"
+                alt="Analyze Claim Icon"
+                class="icon-svg"
+              />
+            </span>
+            <h3 class="card-title">Analyze a Claim</h3>
+          </div>
+          <p class="card-description">Enter a claim to fact-check</p>
+
+          <div class="input-group">
+            <textarea
+              class="input-field"
+              id="claimInput"
+              placeholder="Enter a claim to fact-check..."
+              rows="1"
+            ></textarea>
+          </div>
+
+          <button class="btn" id="analyzeClaimBtn">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+            <span class="btn-text">
+              <img
+                src="./icons/searchblack.svg"
+                class="icon-svg"
+                alt="Search Icon"
+              />
+              Analyze Claim
+            </span>
+          </button>
+
+          <div class="progress-bar" id="claimProgress">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="step-indicator" id="claimStep"></div>
+
+          <div class="error-message" id="claimError"></div>
+          <div class="results-section" id="claimResults"></div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="card-title-group">
+            <span class="card-icon">
+              <img
+                src="./icons/link.svg"
+                alt="Analyze Article Icon"
+                class="icon-svg"
+              />
+            </span>
+            <h3 class="card-title">Analyze Article</h3>
+          </div>
+
+          <p class="card-description">
+            Paste a link to verify the main claims from an article
+          </p>
+
+          <div class="input-group">
+            <input
+              type="url"
+              class="input-field"
+              id="urlInput"
+              placeholder="https://example.com/news-article"
+              rows="1"
+            />
+          </div>
+
+          <button class="btn" id="analyzeUrlBtn">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+            <span class="btn-text">
+              <img src="./icons/world.svg" class="icon-svg" alt="Globe Icon" />
+              Extract & Analyze
+            </span>
+          </button>
+
+          <div class="progress-bar" id="urlProgress">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="step-indicator" id="urlStep"></div>
+
+          <div class="error-message" id="urlError"></div>
+          <div class="results-section" id="urlResults"></div>
+        </div>
+      </div>
+
+      <section class="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <span class="feature-icon">
+              <img
+                src="./icons/search.svg"
+                alt="AI Analysis"
+                class="icon-svg"
+              />
+            </span>
+
+            <h3 class="feature-title">AI-Powered Analysis</h3>
+            <p class="feature-description">
+              Advanced algorithms analyze claims against verified sources and
+              databases
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">
+              <img
+                src="./icons/shield.svg"
+                alt="Real-time Verification"
+                class="icon-svg"
+              />
+            </span>
+
+            <h3 class="feature-title">Real-time Verification</h3>
+            <p class="feature-description">
+              Cross-reference information with multiple reliable sources
+              instantly
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">
+              <img
+                src="./icons/trend.svg"
+                alt="Credibility Scoring"
+                class="icon-svg"
+              />
+            </span>
+
+            <h3 class="feature-title">Credibility Scoring</h3>
+            <p class="feature-description">
+              Get detailed credibility scores and confidence levels for each
+              claim
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal redesign: add max-height, scroll, and better formatting for complete text visibility -->
+    <div
+      id="resultModal"
+      class="modal"
+      style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        class="modal-content"
+        style="
+          background: #222;
+          color: white;
+          border-radius: 16px;
+          width: 95vw;          /* takes almost full screen */
+          max-width: none;      /* remove restriction */
+          padding: 32px;
+          position: relative;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          max-height: 85vh;
+          overflow-y: auto;
+          white-space: pre-wrap;
+        "
+      >
+
+
+        <span
+          id="closeModal"
+          style="
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 2rem;
+            cursor: pointer;
+          "
+          >&times;</span
+        >
+        <div
+          id="modalResultContent"
+          style="font-size: 1.1rem; line-height: 1.7"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+  </script>
+  <script src="main.js"></script>
+
+
+  </body>
+</html>
